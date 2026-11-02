@@ -59,11 +59,15 @@ ORDER BY product_category_name, category_rank;
 
 -- 5. Customer lifetime value proxy and purchase ranking
 SELECT
-    f.customer_id,
+    c.customer_unique_id,
     COUNT(DISTINCT f.order_id) AS orders_count,
     ROUND(SUM(f.price + f.freight_value)::numeric, 2) AS lifetime_revenue,
-    DENSE_RANK() OVER (ORDER BY SUM(f.price + f.freight_value) DESC) AS customer_value_rank
+    DENSE_RANK() OVER (
+        ORDER BY SUM(f.price + f.freight_value) DESC
+    ) AS customer_value_rank
 FROM warehouse.fact_sales f
-GROUP BY f.customer_id
+JOIN warehouse.dim_customers c
+    ON f.customer_id = c.customer_id
+GROUP BY c.customer_unique_id
 ORDER BY customer_value_rank
 LIMIT 20;
